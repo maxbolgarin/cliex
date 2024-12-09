@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 	"time"
+
+	"github.com/sony/gobreaker/v2"
 )
 
 // ServerErrorResponse is the error response from server (try to guess what it is)
@@ -88,6 +90,13 @@ type RequestOpts struct {
 	// EnableTrace is whether to enable trace and return it in resp.Request.TraceInfo().
 	EnableTrace bool
 }
+
+var (
+	// ErrCBOpenState is returned when the CB state is open
+	ErrCBOpenState = gobreaker.ErrOpenState
+	// ErrTooManyRequests is returned when the CB state is half open and the requests count is over the cb maxRequests
+	ErrCBTooManyRequests = gobreaker.ErrTooManyRequests
+)
 
 var (
 	// ErrBadRequest is when the server cannot or will not process the request due to a client error

@@ -128,9 +128,18 @@ func (c *HTTP) Request(ctx context.Context, url string, opts RequestOpts) (*rest
 		cb = gobreaker.NewCircuitBreaker[*resty.Response](c.cbCfg)
 		c.cbs.Set(url, cb)
 	}
-	return cb.Execute(func() (*resty.Response, error) {
+	resp, err := cb.Execute(func() (*resty.Response, error) {
 		return c.request(ctx, url, opts)
 	})
+	switch {
+	case errors.Is(err, gobreaker.ErrOpenState):
+		return nil, ErrCBOpenState
+	case errors.Is(err, gobreaker.ErrTooManyRequests):
+		return nil, ErrCBTooManyRequests
+	case err != nil:
+		return nil, err
+	}
+	return resp, nil
 }
 
 func (c *HTTP) request(ctx context.Context, url string, opts RequestOpts) (*resty.Response, error) {
