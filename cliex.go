@@ -31,12 +31,21 @@ type HTTP struct {
 }
 
 // New returns a new HTTP client weith applied With* options to Config.
-func New(optsFuncs ...func(*Config)) *HTTP {
+func New(optsFuncs ...func(*Config)) (*HTTP, error) {
 	var cfg Config
 	for _, optsFunc := range optsFuncs {
 		optsFunc(&cfg)
 	}
-	cli, _ := NewWithConfig(cfg)
+	return NewWithConfig(cfg)
+}
+
+// MustNew returns a new HTTP client inited with provided config.
+// Panics if an error occurs.
+func MustNew(optsFuncs ...func(*Config)) *HTTP {
+	cli, err := New(optsFuncs...)
+	if err != nil {
+		panic(err)
+	}
 	return cli
 }
 
@@ -352,38 +361,6 @@ func getSender(r *resty.Request, method string) func(string) (*resty.Response, e
 	}
 	return r.Get
 }
-
-type Logger interface {
-	Debug(msg string, v ...any)
-	Warn(msg string, v ...any)
-	Error(msg string, v ...any)
-}
-
-type restyLogger struct {
-	l Logger
-}
-
-func newRestyLogger(l Logger) restyLogger {
-	return restyLogger{l: l}
-}
-
-func (l restyLogger) Debugf(format string, v ...any) {
-	l.l.Debug(fmt.Sprintf(format, v...))
-}
-
-func (l restyLogger) Warnf(format string, v ...any) {
-	l.l.Warn(fmt.Sprintf(format, v...))
-}
-
-func (l restyLogger) Errorf(format string, v ...any) {
-	l.l.Error(fmt.Sprintf(format, v...))
-}
-
-type noopLogger struct{}
-
-func (l noopLogger) Debug(msg string, v ...any) {}
-func (l noopLogger) Warn(msg string, v ...any)  {}
-func (l noopLogger) Error(msg string, v ...any) {}
 
 func getErrorMessage(r ServerErrorResponse) string {
 	if r.Message != "" {
