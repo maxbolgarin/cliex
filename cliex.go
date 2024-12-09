@@ -406,3 +406,7 @@ func getErrorMessage(r ServerErrorResponse) string {
 	}
 	return ""
 }
+
+func IsServerError(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "code 5")
+}

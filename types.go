@@ -3,7 +3,6 @@ package cliex
 import (
 	"errors"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -441,10 +440,6 @@ var ErrorMapping = map[int]error{
 	463: ErrTooManyXForwardedFor,
 	464: ErrIncompatibleProtocolVersions,
 	561: ErrUnauthorizedElastic,
-}
-
-func IsServerError(err error) bool {
-	return err != nil && strings.Contains(err.Error(), "code 5")
 }
 
 const (
