@@ -5,6 +5,8 @@
 
 The **cliex** package is a robust and extensible HTTP client designed for making HTTP requests in Go applications, leveraging the capabilities of the `resty` library. It simplifies the process of sending HTTP requests and provides advanced features such as configuration options, circuit breaking, retries, and more.
 
+This package is a wrapper on [resty](https://github.com/go-resty/resty) — it makes HTTP requests less verbose, adds request based retry settings and a circuit breaker.
+
 ## Table of Contents
 
 1. [Introduction](#introduction)
