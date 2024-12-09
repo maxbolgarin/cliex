@@ -178,13 +178,15 @@ func (c *HTTP) request(ctx context.Context, url string, opts RequestOpts) (*rest
 		c.log.Error(msg, "error", err, "address", c.cli.BaseURL+url)
 	}
 
-	var errs []error
+	errs := abstract.NewSet[string]()
 	for retry := 1; retry < opts.RetryCount; retry++ {
 		sleepTime := getSleepTime(retry, opts.RetryWaitTime, opts.RetryMaxWaitTime)
 
 		select {
 		case <-ctx.Done():
-			return nil, fmt.Errorf("request canceled, got errors: %w", errors.Join(errs...))
+			return nil, fmt.Errorf("request canceled after %d retries, got errors: %s", retry, errors.Join(lang.Convert(errs.Values(), func(err string) error {
+				return errors.New(err)
+			})...))
 
 		case <-time.After(sleepTime):
 		}
@@ -194,14 +196,17 @@ func (c *HTTP) request(ctx context.Context, url string, opts RequestOpts) (*rest
 			if !opts.NoLogRetryError {
 				c.log.Warn("failed "+opts.RequestName+"request after retry", "error", err, "n", retry, "address", c.cli.BaseURL+url)
 			}
-			errs = append(errs, err)
+			errs.Add(err.Error())
 			continue
 		}
 
 		return resp, nil
 	}
 
-	return nil, fmt.Errorf("failed %srequest after retries, got errors: %w", opts.RequestName, errors.Join(errs...))
+	return nil, fmt.Errorf("failed %srequest after %d retries, got errors: %s", opts.RequestName, opts.RetryCount,
+		errors.Join(lang.Convert(errs.Values(), func(err string) error {
+			return errors.New(err)
+		})...))
 }
 
 // Req performs request with method to the BaseURL +  URL and returns response

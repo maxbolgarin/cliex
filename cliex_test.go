@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -493,7 +494,10 @@ func TestRetryMechanism(t *testing.T) {
 		RetryWaitTime:         10 * time.Millisecond,
 		RetryMaxWaitTime:      50 * time.Millisecond,
 	})
-	assert.Error(t, err)
+	assert.ErrorContains(t, err, "bad request")
+	assert.False(t, strings.Contains(err.Error(), "retr"))
+
+	requestCount = 0
 
 	response, err := client.Request(ctx, "/", cliex.RequestOpts{
 		Method:           http.MethodGet,
@@ -507,6 +511,20 @@ func TestRetryMechanism(t *testing.T) {
 	assert.Equal(t, http.StatusOK, response.StatusCode())
 	assert.Equal(t, "success", result.Message)
 	assert.Equal(t, retryThreshold, requestCount)
+
+	requestCount = 0
+
+	_, err = client.Request(ctx, "/", cliex.RequestOpts{
+		Method:           http.MethodGet,
+		Result:           &result,
+		ForceContentType: cliex.MIMETypeJSON,
+		RetryCount:       20,
+		RetryWaitTime:    10 * time.Millisecond,
+		RetryMaxWaitTime: 50 * time.Millisecond,
+	})
+	if assert.ErrorContains(t, err, "bad request") {
+		assert.True(t, strings.Contains(err.Error(), "retr"))
+	}
 }
 
 func TestCircuitBreaker(t *testing.T) {

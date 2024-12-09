@@ -34,15 +34,19 @@ type Config struct {
 	// Format "http://localhost:8080/URL" or "https://localhost:8080/URL".
 	// Default is empty, means you should provide full URL in Request methods.
 	BaseURL string `yaml:"base_url" json:"base_url" env:"CLIEX_BASE_URL"`
+
 	// UserAgent is the User-Agent header that is used for every request.
 	// Default is "Golang HTTP client".
 	UserAgent string `yaml:"user_agent" json:"user_agent" env:"CLIEX_USER_AGENT"`
+
 	// AuthToken is the Bearer token that is used for every request.
 	AuthToken string `yaml:"auth_token" json:"auth_token" env:"CLIEX_AUTH_TOKEN"`
+
 	// ProxyAddress is the address of the proxy server.
 	// format "http://localhost:3128".
 	// If empty, no proxy will be used.
 	ProxyAddress string `yaml:"proxy_address" json:"proxy_address" env:"CLIEX_PROXY_ADDRESS"`
+
 	// RequestTimeout is the timeout for every request in seconds.
 	// Default is 30 seconds.
 	RequestTimeout time.Duration `yaml:"request_timeout" json:"request_timeout" env:"CLIEX_REQUEST_TIMEOUT"`
