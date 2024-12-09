@@ -197,6 +197,9 @@ func (cfg *Config) prepareAndValidate() error {
 	if cfg.RestyLogger == nil {
 		cfg.RestyLogger = newRestyLogger(cfg.Logger)
 	}
+	if cfg.Logger == nil && cfg.RestyLogger != nil {
+		cfg.Logger = loggerFromResty{cfg.RestyLogger}
+	}
 	cfg.CircuitBreakerTimeout = lang.Check(cfg.CircuitBreakerTimeout, defaultCircuitBreakerTimeout)
 	cfg.CircuitBreakerFailures = lang.Check(cfg.CircuitBreakerFailures, defaultCircuitBreakerFailures)
 
@@ -245,4 +248,50 @@ func GetConfigForTest(ctx context.Context, requestCounter *atomic.Int64, respons
 		BaseURL:  srv.URL,
 		Insecure: true,
 	}
+}
+
+type Logger interface {
+	Debug(msg string, v ...any)
+	Warn(msg string, v ...any)
+	Error(msg string, v ...any)
+}
+
+type restyLogger struct {
+	l Logger
+}
+
+func newRestyLogger(l Logger) restyLogger {
+	return restyLogger{l: l}
+}
+
+func (l restyLogger) Debugf(format string, v ...any) {
+	l.l.Debug(fmt.Sprintf(format, v...))
+}
+
+func (l restyLogger) Warnf(format string, v ...any) {
+	l.l.Warn(fmt.Sprintf(format, v...))
+}
+
+func (l restyLogger) Errorf(format string, v ...any) {
+	l.l.Error(fmt.Sprintf(format, v...))
+}
+
+type noopLogger struct{}
+
+func (l noopLogger) Debug(msg string, v ...any) {}
+func (l noopLogger) Warn(msg string, v ...any)  {}
+func (l noopLogger) Error(msg string, v ...any) {}
+
+type loggerFromResty struct {
+	l resty.Logger
+}
+
+func (l loggerFromResty) Debug(msg string, v ...any) {
+	l.l.Debugf(msg+" %v", v...)
+}
+func (l loggerFromResty) Warn(msg string, v ...any) {
+	l.l.Warnf(msg+" %v", v...)
+}
+func (l loggerFromResty) Error(msg string, v ...any) {
+	l.l.Errorf(msg+" %v", v...)
 }
