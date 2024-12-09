@@ -1,8 +1,6 @@
 module github.com/maxbolgarin/cliex
 
-go 1.23.1
-
-toolchain go1.23.3
+go 1.22
 
 require (
 	github.com/go-resty/resty/v2 v2.16.2
