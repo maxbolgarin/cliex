@@ -398,6 +398,18 @@ func getErrorMessage(r ServerErrorResponse) string {
 	return ""
 }
 
+// IsServerError returns true if the error is a server error (5xx).
 func IsServerError(err error) bool {
 	return err != nil && strings.Contains(err.Error(), "code 5")
+}
+
+// GetCodeFromError returns the error code from the error message.
+func GetCodeFromError(err error) int {
+	errStr := err.Error()
+	index := strings.Index(errStr, "code ")
+	if index == -1 {
+		return 0
+	}
+	code, _ := strconv.Atoi(errStr[index+5 : index+8])
+	return code
 }

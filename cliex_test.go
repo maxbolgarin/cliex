@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -604,6 +605,24 @@ func TestIsServerError(t *testing.T) {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
 			isServerError := cliex.IsServerError(c.err)
 			assert.Equal(t, c.expected, isServerError)
+		})
+	}
+}
+
+func TestGetCodeFromError(t *testing.T) {
+	cases := []struct {
+		err      error
+		expected int
+	}{
+		{cliex.ErrBadGateway, 502},
+		{cliex.ErrNotFound, 404},
+		{fmt.Errorf("some error %w: %s", cliex.ErrNotFound, "bad request"), 404},
+	}
+
+	for i, c := range cases {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			code := cliex.GetCodeFromError(c.err)
+			assert.Equal(t, c.expected, code)
 		})
 	}
 }
